@@ -11,7 +11,7 @@
           </label>
           <input v-model="formData.nama" type="text" required class="input input-bordered input-info w-full max-w-md" />
         </div>
-        <!-- <div class="form-control">
+        <div class="form-control">
           <label class="label">
             <span class="label-text">NIK</span>
           </label>
@@ -55,32 +55,32 @@
             <option value="Laki-laki">Laki-laki</option>
             <option value="Perempuan">Perempuan</option>
           </select>
-        </div> -->
+        </div>
         <div class="form-control">
           <label class="label">
             <span class="label-text">Provinsi</span>
           </label>
-          <select v-model="formData.provinsi" @change="fetchKabKota" required
+          <select v-model="formData.provinsi" @change="fetchAPI('kabKota')" required
             class="select select-bordered select-info w-full max-w-md">
             <option value="">Pilih Provinsi</option>
             <option v-for="provinsi in dataWilayah.provinsi" :key="provinsi.id" :value="provinsi.id">{{ provinsi.name }}
             </option>
           </select>
         </div>
-       <div class="form-control">
+        <div class="form-control">
           <label class="label">
             <span class="label-text">Kab/Kota</span>
           </label>
-          <select v-model="formData.kabKota" @change="fetchKecamatan" required
+          <select v-model="formData.kabKota" @change="fetchAPI('kecamatan')" required
             class="select select-bordered select-info w-full max-w-md">
             <option v-for="kab in dataWilayah.kabKota" :key="kab.id" :value="kab.id">{{ kab.name }}</option>
           </select>
         </div>
-         <!-- <div class="form-control">
+        <div class="form-control">
           <label class="label">
             <span class="label-text">Kecamatan</span>
           </label>
-          <select v-model="formData.kecamatan" @change="fetchKelurahan" required
+          <select v-model="formData.kecamatan" @change="fetchAPI('kelurahan')" required
             class="select select-bordered select-info w-full max-w-md">
             <option v-for="kec in dataWilayah.kecamatan" :key="kec.id" :value="kec.id">{{ kec.name }}</option>
           </select>
@@ -125,7 +125,7 @@
           </label>
           <input v-model.number="formData.penghasilanSetelah" type="number" required
             class="input input-bordered input-info w-full max-w-md" />
-        </div> -->
+        </div>
         <div class="form-control">
           <label class="label">
             <span class="label-text">Alasan Membutuhkan Bantuan</span>
@@ -164,7 +164,8 @@
           }}</pre>
         </div>
         <div class="mt-8" v-else>
-          <pre>No Data to Preview, please fill the form first</pre>
+          <pre class="bg-base-200 p-4 rounded">
+No Data to Preview, please fill the form first</pre>
         </div>
       </div>
     </div>
@@ -232,32 +233,19 @@ export default {
     };
   },
   methods: {
-    async fetchProvinsi(e) {
-      const response = await fetch(
-        "https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json"
-      );
-      this.dataWilayah.provinsi = await response.json();
-      console.log(e);
-      
-      this.dataWilayahID.provinsi = e.target.key
-    },
-    async fetchKabKota() {
-      const response = await fetch(
-        `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${this.formData.provinsi}.json`
-      );
-      this.dataWilayah.kabKota = await response.json();
-    },
-    async fetchKecamatan() {
-      const response = await fetch(
-        `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${this.formData.kabKota}.json`
-      );
-      this.dataWilayah.kecamatan = await response.json();
-    },
-    async fetchKelurahan() {
-      const response = await fetch(
-        `https://www.emsifa.com/api-wilayah-indonesia/api/villages/${this.formData.kecamatan}.json`
-      );
-      this.dataWilayah.kelurahan = await response.json();
+    async fetchAPI(scope) {
+      const API = "https://www.emsifa.com/api-wilayah-indonesia/api";
+      let link =
+        scope == "kabKota"
+          ? API + `/regencies/${this.formData.provinsi}.json`
+          : scope == "kecamatan"
+            ? API + `/districts/${this.formData.kabKota}.json`
+            : scope == "kelurahan"
+              ? API + `/villages/${this.formData.kecamatan}.json`
+              : API + "/provinces.json";
+
+      const response = await fetch(link);
+      this.dataWilayah[scope] = await response.json();
     },
     handleFileUpload(field, event) {
       this.formData[field] = event.target.files[0];
@@ -275,7 +263,7 @@ export default {
     },
   },
   mounted() {
-    this.fetchProvinsi();
+    this.fetchAPI('provinsi');
   },
 };
 </script>
